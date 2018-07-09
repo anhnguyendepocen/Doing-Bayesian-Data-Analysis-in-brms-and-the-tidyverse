@@ -1,16 +1,14 @@
----
-title: "Chapter 02. Introduction: Credibility, Models, and Parameters"
-author: "A Solomon Kurz"
-date: "`r format(Sys.Date())`"
-output:
-  github_document
----
+Chapter 02. Introduction: Credibility, Models, and Parameters
+================
+A Solomon Kurz
+2018-07-09
 
-## 2.1. Bayesian inference is reallocation of credibility across possibilities
+2.1. Bayesian inference is reallocation of credibility across possibilities
+---------------------------------------------------------------------------
 
 The code for Figure 2.1 is formidable. However, the bulk (i.e., the two `geom_text()` blocks and the subsequent `geom_line()` block) are just for the annotation in the lower three panels.
 
-```{r, message = F, warning = F, fig.width = 6, fig.height = 4}
+``` r
 library(tidyverse)
 
 tibble(
@@ -65,9 +63,11 @@ tibble(
         axis.ticks.x = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-1-1.png)
+
 Same deal for Figure 2.2.
 
-```{r, fig.width = 2.25, fig.height = 4}
+``` r
 tibble(
   stage = rep(c("Prior", "Posterior"), each = 4),
   Possibilities = rep(LETTERS[1:4], times = 2),
@@ -110,11 +110,13 @@ tibble(
         axis.ticks.x = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
 ### 2.1.1. Data are noisy and inferences are probabilistic.
 
 It's easier to break Figure 2.3 up into the top and bottom portions. Here's the top.
 
-```{r, fig.width = 2.25, fig.height = 2.5}
+``` r
 d <-
   tibble(x = seq(from = -2, to = 6, by = .01))
 
@@ -151,9 +153,11 @@ ggplot(data = d, aes(x = x)) +
         axis.ticks.x = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
 Now we're ready for the bottom.
 
-```{r, fig.width = 2.25, fig.height = 2.5}
+``` r
 ggplot(data = d, aes(x = x)) +
   # Note the use of mu_i in the data and aes() statements
   geom_ribbon(data = d %>% filter(x > mu_1 - .2 & x < mu_1 + .2),
@@ -186,11 +190,14 @@ ggplot(data = d, aes(x = x)) +
         axis.ticks.x = element_blank())
 ```
 
-## 2.2. Possibilities are parameter values in descriptive models
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-4-1.png)
+
+2.2. Possibilities are parameter values in descriptive models
+-------------------------------------------------------------
 
 Figure 2.4.a.
 
-```{r, fig.width = 3, fig.height = 2.5}
+``` r
 set.seed(2.4)
 d <- tibble(x = rnorm(2000, mean = 10, sd = 5))
 
@@ -208,9 +215,11 @@ ggplot(data = d, aes(x = x)) +
   theme(panel.grid = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-5-1.png)
+
 Figure 2.4.b.
 
-```{r, fig.width = 3, fig.height = 2.5}
+``` r
 ggplot(data = d, aes(x = x)) +
   geom_histogram(aes(y = ..density..),
                  binwidth = 1, fill = "grey67",
@@ -225,11 +234,14 @@ ggplot(data = d, aes(x = x)) +
   theme(panel.grid = element_blank())
 ```
 
-## 2.3. The steps of Bayesian data analysis
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-6-1.png)
+
+2.3. The steps of Bayesian data analysis
+----------------------------------------
 
 In order to recreate Figure 2.5, we need to generate the data and fit the model. In his "HtWtDataDenerator" R script, Kruschke provided the code for a function that will generate height/weight data of the kind in his text. Here is the code:
 
-```{r}
+``` r
 HtWtDataGenerator <- function(nSubj, rndsd = NULL, maleProb = 0.50) {
   # Random height, weight generator for males and females. Uses parameters from
   # Brainard, J. & Burmaster, D. E. (1992). Bivariate distributions for height and
@@ -296,7 +308,7 @@ HtWtDataGenerator <- function(nSubj, rndsd = NULL, maleProb = 0.50) {
 
 Now we have the `HtWtDataGenerator()` function, all we need to do is determine how many values are generated and how probable we want the values to be based on those from men. These are controlled by the `nSubj` and `maleProb` parameters.
 
-```{r, message = F, warning = F}
+``` r
 set.seed(57) # This makes the data generation reproducible
 
 d_57 <-
@@ -307,9 +319,19 @@ d_57 %>%
   head()
 ```
 
-Here's the model. We fit it with HMC via the [brms package](https://cran.r-project.org/web/packages/brms/index.html). The traditional use of [diffuse and noninformative priors is discouraged with HMC, as is the uniform distribution for sigma](https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations). Instead, we'll use weakly-regularizing priors for the intercept an slope and a half Cauchy with a fairly large scale parameter for $\sigma$.
+    ## # A tibble: 6 x 3
+    ##    male height weight
+    ##   <dbl>  <dbl>  <dbl>
+    ## 1     0   68.8   133.
+    ## 2     1   70     187.
+    ## 3     0   63.2   154 
+    ## 4     0   61.4   145.
+    ## 5     0   66.1   130.
+    ## 6     1   71.5   271
 
-```{r, message = F, warning = F}
+Here's the model. We fit it with HMC via the [brms package](https://cran.r-project.org/web/packages/brms/index.html). The traditional use of [diffuse and noninformative priors is discouraged with HMC, as is the uniform distribution for sigma](https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations). Instead, we'll use weakly-regularizing priors for the intercept an slope and a half Cauchy with a fairly large scale parameter for *σ*.
+
+``` r
 library(brms)
 
 k2.0 <- 
@@ -321,12 +343,37 @@ k2.0 <-
       chains = 4, iter = 2000, warmup = 1000, cores = 4)
 
 plot(k2.0)
+```
+
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-9-1.png)
+
+``` r
 print(k2.0)
 ```
 
+    ##  Family: gaussian 
+    ##   Links: mu = identity; sigma = identity 
+    ## Formula: weight ~ 1 + height 
+    ##    Data: d_57 (Number of observations: 57) 
+    ## Samples: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+    ##          total post-warmup samples = 4000
+    ## 
+    ## Population-Level Effects: 
+    ##           Estimate Est.Error l-95% CI u-95% CI Eff.Sample Rhat
+    ## Intercept  -102.63     79.78  -259.12    56.45       3217 1.00
+    ## height        3.94      1.20     1.54     6.28       3221 1.00
+    ## 
+    ## Family Specific Parameters: 
+    ##       Estimate Est.Error l-95% CI u-95% CI Eff.Sample Rhat
+    ## sigma    32.92      3.22    27.41    39.92       3127 1.00
+    ## 
+    ## Samples were drawn using sampling(NUTS). For each parameter, Eff.Sample 
+    ## is a crude measure of effective sample size, and Rhat is the potential 
+    ## scale reduction factor on split chains (at convergence, Rhat = 1).
+
 We'll walk through all of this in greater detail starting in Chapter 8. But for now, here's Figure 2.5.a.
 
-```{r, fig.width = 3.25, fig.height = 3}
+``` r
 post <- posterior_samples(k2.0)
 
 n_lines <- 150
@@ -348,9 +395,11 @@ ggplot(data =  d_57,
   theme(panel.grid = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-10-1.png)
+
 Figure 2.5.b. will take a little work. First, we'll use a custom function to compute the posterior mode and the `hdi()` function from the [HDInterval package](https://cran.r-project.org/web/packages/HDInterval/index.html) to compute the HPD intervals.
- 
-```{r}
+
+``` r
 # estimate_mode() comes from: https://stackoverflow.com/questions/2547402/is-there-a-built-in-function-for-finding-the-mode
 estimate_mode <- function(x) {
   d <- density(x)
@@ -358,14 +407,20 @@ estimate_mode <- function(x) {
   }
 
 estimate_mode(post$b_height)
+```
 
+    ## [1] 4.101658
+
+``` r
 library(HDInterval)
 hdi(post$b_height, credMass = .95) %>% as.vector
 ```
 
+    ## [1] 1.614579 6.306514
+
 Figure 2.5.b.
 
-```{r, fig.width = 3, fig.height = 3}
+``` r
 ggplot(data =  post, aes(x = b_height)) +
   geom_histogram(color = "grey92", fill = "grey50",
                  binwidth = .2, size = .2) +
@@ -383,9 +438,11 @@ ggplot(data =  post, aes(x = b_height)) +
   theme(panel.grid = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-12-1.png)
+
 Figure 2.6.
 
-```{r, fig.width = 4, fig.height = 4}
+``` r
 nd <- tibble(height = seq(from = 53, to = 81, length.out = 20))
 
 pred_k2.0 <- 
@@ -407,9 +464,11 @@ ggplot(data =  pred_k2.0, aes(x = height)) +
   theme(panel.grid = element_blank())
 ```
 
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-13-1.png)
+
 The posterior predictions might be easier to depict with a ribbon and line, instead.
 
-```{r, fig.width = 4, fig.height = 4}
+``` r
 nd <- tibble(height = seq(from = 53, to = 81, length.out = 30))
 
 pred_k2.0 <- 
@@ -431,15 +490,66 @@ ggplot(data =  pred_k2.0, aes(x = height)) +
   theme(panel.grid = element_blank())
 ```
 
-## References
+![](Chapter_02_files/figure-markdown_github/unnamed-chunk-14-1.png)
+
+References
+----------
 
 Kruschke, J. K. (2015). *Doing Bayesian data analysis, Second Edition: A tutorial with R, JAGS, and Stan.* Burlington, MA: Academic Press/Elsevier.
 
-```{r}
+``` r
 sessionInfo()
 ```
 
-```{r, message = F, warning = F, echo = F}
-# Here we'll remove our objects
-rm(d, mu_1, mu_2, mu_3, mu_4, HtWtDataGenerator, d_57, k2.0, post, n_lines, estimate_mode, nd, pred_k2.0)
-```
+    ## R version 3.5.1 (2018-07-02)
+    ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
+    ## Running under: macOS High Sierra 10.13.4
+    ## 
+    ## Matrix products: default
+    ## BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
+    ## LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+    ## 
+    ## locale:
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+    ## 
+    ## attached base packages:
+    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## other attached packages:
+    ##  [1] HDInterval_0.2.0 brms_2.3.4       Rcpp_0.12.17     MASS_7.3-50     
+    ##  [5] bindrcpp_0.2.2   forcats_0.3.0    stringr_1.3.1    dplyr_0.7.6     
+    ##  [9] purrr_0.2.5      readr_1.1.1      tidyr_0.8.1      tibble_1.4.2    
+    ## [13] ggplot2_3.0.0    tidyverse_1.2.1 
+    ## 
+    ## loaded via a namespace (and not attached):
+    ##  [1] nlme_3.1-137         matrixStats_0.53.1   xts_0.10-2          
+    ##  [4] lubridate_1.7.4      threejs_0.3.1        httr_1.3.1          
+    ##  [7] rprojroot_1.3-2      rstan_2.17.3         tools_3.5.1         
+    ## [10] backports_1.1.2      utf8_1.1.4           R6_2.2.2            
+    ## [13] DT_0.4               lazyeval_0.2.1       colorspace_1.3-2    
+    ## [16] withr_2.1.2          tidyselect_0.2.4     gridExtra_2.3       
+    ## [19] mnormt_1.5-5         Brobdingnag_1.2-5    compiler_3.5.1      
+    ## [22] cli_1.0.0            rvest_0.3.2          shinyjs_1.0         
+    ## [25] xml2_1.2.0           labeling_0.3         colourpicker_1.0    
+    ## [28] scales_0.5.0         dygraphs_1.1.1.5     mvtnorm_1.0-8       
+    ## [31] psych_1.8.4          ggridges_0.5.0       digest_0.6.15       
+    ## [34] StanHeaders_2.17.2   foreign_0.8-70       rmarkdown_1.10      
+    ## [37] base64enc_0.1-3      pkgconfig_2.0.1      htmltools_0.3.6     
+    ## [40] htmlwidgets_1.2      rlang_0.2.1          readxl_1.1.0        
+    ## [43] rstudioapi_0.7       shiny_1.1.0          bindr_0.1.1         
+    ## [46] zoo_1.8-2            jsonlite_1.5         crosstalk_1.0.0     
+    ## [49] gtools_3.8.1         inline_0.3.15        magrittr_1.5        
+    ## [52] loo_2.0.0            bayesplot_1.5.0      Matrix_1.2-14       
+    ## [55] munsell_0.5.0        abind_1.4-5          stringi_1.2.3       
+    ## [58] yaml_2.1.19          plyr_1.8.4           grid_3.5.1          
+    ## [61] parallel_3.5.1       promises_1.0.1       crayon_1.3.4        
+    ## [64] miniUI_0.1.1.1       lattice_0.20-35      haven_1.1.2         
+    ## [67] hms_0.4.2            knitr_1.20           pillar_1.2.3        
+    ## [70] igraph_1.2.1         markdown_0.8         shinystan_2.5.0     
+    ## [73] codetools_0.2-15     reshape2_1.4.3       stats4_3.5.1        
+    ## [76] rstantools_1.5.0     glue_1.2.0           evaluate_0.10.1     
+    ## [79] modelr_0.1.2         httpuv_1.4.4.2       cellranger_1.1.0    
+    ## [82] gtable_0.2.0         assertthat_0.2.0     mime_0.5            
+    ## [85] xtable_1.8-2         broom_0.4.5          coda_0.19-1         
+    ## [88] later_0.7.3          rsconnect_0.8.8      shinythemes_1.1.1   
+    ## [91] bridgesampling_0.4-0
