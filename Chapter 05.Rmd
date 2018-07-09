@@ -1,0 +1,75 @@
+---
+title: "Chapter 05. Bayes' Rule"
+author: "A Solomon Kurz"
+date: "`r format(Sys.Date())`"
+output:
+  github_document
+---
+
+## 5.3. Complete examples: Estimating bias in a coin
+
+Figure 5.1.a.
+
+```{r, message = F, warning = F, fig.width = 4, fig.height = 2}
+library(tidyverse)
+
+tibble(x = seq(from = 0, to = 1, by = .1),
+       y = c(seq(from = 0, to = .5, by = .1),
+             seq(from = .4, to = 0, by = -.1))
+       ) %>%
+  mutate(y = (y * 2) * .2) %>%
+  
+  ggplot(aes(x = x, y = y, ymin = 0, ymax = y)) +
+  geom_linerange(size = 3, color = "grey50") +
+  geom_point(shape = 95, color = "grey50", size = 3) +
+  scale_x_continuous(breaks = seq(from = 0, to = 1, by = .2)) +
+  labs(title = "Prior",
+       x = expression(theta),
+       y = expression(paste("p(", theta, ")"))) +
+  theme(panel.grid = element_blank())
+```
+
+Figure 5.1.b.
+
+```{r, message = F, warning = F, fig.width = 4, fig.height = 2}
+tibble(x = seq(from = 0, to = 1, by = .1),
+       y = x
+       ) %>%
+  
+  ggplot(aes(x = x, y = y, ymin = 0, ymax = y)) +
+  geom_linerange(size = 3, color = "grey50") +
+  geom_point(shape = 95, color = "grey50", size = 3) +
+  scale_x_continuous(breaks = seq(from = 0, to = 1, by = .2)) +
+  labs(title = "Likelihood",
+       x = expression(theta),
+       y = expression(paste("p(D|", theta, ")"))) +
+  theme(panel.grid = element_blank())
+```
+
+Figure 5.1.c.
+
+```{r, message = F, warning = F, fig.width = 4, fig.height = 2}
+tibble(x = seq(from = 0, to = 1, by = .1),
+       y = c(seq(from = 0, to = .5, by = .1),
+             seq(from = .4, to = 0, by = -.1))
+       ) %>%
+  mutate(y = (x * y * 2) * .4) %>%
+  
+  ggplot(aes(x = x, y = y, ymin = 0, ymax = y)) +
+  geom_linerange(size = 3, color = "grey50") +
+  geom_point(shape = 95, color = "grey50", size = 3) +
+  scale_x_continuous(breaks = seq(from = 0, to = 1, by = .2)) +
+  labs(title = "Posterior",
+       x = expression(theta),
+       y = expression(paste("p(", theta, "|D)"))) +
+  theme(panel.grid = element_blank())
+```
+
+## References
+
+Kruschke, J. K. (2015). *Doing Bayesian data analysis, Second Edition: A tutorial with R, JAGS, and Stan.* Burlington, MA: Academic Press/Elsevier.
+
+```{r}
+sessionInfo()
+```
+
